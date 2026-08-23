@@ -10,14 +10,32 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+    volumes: [store_pgdata:/var/lib/postgresql/data]
   api:
     build: .
+    command: uvicorn apps.api.dhat_store.main:app --host 0.0.0.0 --port 8000
     environment:
       DATABASE_URL: postgresql+asyncpg://store:store@db:5432/store
-      SECRET_KEY: ${SECRET_KEY:-change-me}
+      SECRET_KEY: ${SECRET_KEY:?set SECRET_KEY}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
       OWNER_TELEGRAM_ID: ${OWNER_TELEGRAM_ID:-}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
     ports: ["8000:8000"]
-    depends_on:
-      db:
-        condition: service_healthy
+    depends_on: {db: {condition: service_healthy}}
+  worker:
+    build: .
+    command: python -m apps.api.dhat_store.worker
+    environment:
+      DATABASE_URL: postgresql+asyncpg://store:store@db:5432/store
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+    depends_on: {db: {condition: service_healthy}}
+  bot:
+    build: .
+    command: python apps/bot/main.py
+    environment:
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:?set TELEGRAM_BOT_TOKEN}
+      DHAT_API_URL: http://api:8000
+      DHAT_STORE_URL: ${DHAT_STORE_URL:-http://localhost:5173}
+    depends_on: {api: {condition: service_started}}
+volumes:
+  store_pgdata:
