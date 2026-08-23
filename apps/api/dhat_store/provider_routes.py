@@ -42,4 +42,4 @@ async def reconcile(order_id:int,db:AsyncSession=Depends(get_db),u:User=Depends(
     old=o.status;o.status=new;ex.outcome='RESOLVED';ex.last_checked_at=datetime.now(timezone.utc);db.add(OrderEvent(order_id=o.id,old_status=old,new_status=new,actor_id=u.id,source='RECONCILIATION',metadata_json=json.dumps({'provider_status':status})));await db.commit();return {'order_id':o.id,'status':new}
 
 from .management_routes import router as management_router
-management_app_router=management_router
+router.include_router(management_router)
