@@ -1,0 +1,7 @@
+[tool.ruff]
+line-length = 140
+lint.select = ["E","F"]
+lint.ignore = ["E701","E702"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
