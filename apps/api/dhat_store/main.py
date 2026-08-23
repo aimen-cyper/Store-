@@ -12,8 +12,8 @@ from .db import get_db
 from .models import *
 from .core import calculate_price,coupon_discount,transition_allowed
 from .provider_routes import router as provider_router
-app=FastAPI(title='DHĀT STORE API',version='2.0.0')
-app.include_router(provider_router)
+from .dispatch_routes import router as dispatch_router
+app=FastAPI(title='DHĀT STORE API',version='2.0.0');app.include_router(provider_router);app.include_router(dispatch_router)
 app.add_middleware(CORSMiddleware,allow_origins=[x.strip() for x in settings.cors_origins.split(',')],allow_credentials=True,allow_methods=['*'],allow_headers=['*'])
 def tg_verify(data,token):
     pairs=dict(parse_qsl(data,keep_blank_values=True));given=pairs.pop('hash',None)
