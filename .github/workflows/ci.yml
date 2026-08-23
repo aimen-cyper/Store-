@@ -11,6 +11,9 @@ jobs:
       - run: ruff check apps tests
       - run: pytest -q
       - run: python -m compileall -q apps alembic
+      - run: DATABASE_URL=sqlite+aiosqlite:///./ci.db alembic upgrade head
+      - run: DATABASE_URL=sqlite+aiosqlite:///./ci.db alembic downgrade base
+      - run: DATABASE_URL=sqlite+aiosqlite:///./ci.db alembic upgrade head
   frontend:
     runs-on: ubuntu-latest
     strategy:
@@ -18,7 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: {node-version: '20'}
+        with: {node-version: '20',cache: 'npm',cache-dependency-path: apps/${{ matrix.app }}/package.json}
       - run: npm install
         working-directory: apps/${{ matrix.app }}
       - run: npm run build
