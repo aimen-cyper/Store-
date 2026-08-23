@@ -1,0 +1,23 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: store
+      POSTGRES_USER: store
+      POSTGRES_PASSWORD: store
+    healthcheck:
+      test: ["CMD-SHELL","pg_isready -U store -d store"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  api:
+    build: .
+    environment:
+      DATABASE_URL: postgresql+asyncpg://store:store@db:5432/store
+      SECRET_KEY: ${SECRET_KEY:-change-me}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      OWNER_TELEGRAM_ID: ${OWNER_TELEGRAM_ID:-}
+    ports: ["8000:8000"]
+    depends_on:
+      db:
+        condition: service_healthy
